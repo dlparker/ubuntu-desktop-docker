@@ -92,6 +92,12 @@ RUN apt-get update && \
         xfce4-goodies \
         xfce4-terminal \
         xorg \
+	pipewire \
+        pipewire-bin \
+        wireplumber \
+        pipewire-pulse \
+        pipewire-module-xrdp \
+        pavucontrol \
         xorgxrdp \
         xrdp && \
     apt-get clean && \

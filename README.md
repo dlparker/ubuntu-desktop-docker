@@ -1,4 +1,5 @@
 # ubuntu-desktop-docker
+## Why this fork? To customize the setup for my preferences so new containers are already configed to my liking
 
 Ubuntu 24.04 XFCE desktop in a container, accessible over **VNC**, **xrdp**,
 and **SSH**. Runs `systemd` as PID 1 so services start, stop, and restart
