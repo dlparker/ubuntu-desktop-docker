@@ -1,8 +1,8 @@
 services:
   ubuntu-desktop:
     image: ubuntu-desktop:dev
-    container_name: ubuntu-desktop
-    hostname: ubuntu-desktop
+    container_name: editing
+    hostname: editing
     restart: unless-stopped
     # systemd-as-PID1 needs a writable cgroup hierarchy (provided by host on
     # cgroup v2) plus tmpfs for /tmp and /run. No --privileged required.
