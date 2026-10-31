@@ -1,0 +1,18 @@
+#!/bin/sh
+# Custom xrdp session start: launch XFCE under dbus.
+if [ -r /etc/default/locale ]; then
+    . /etc/default/locale
+    export LANG LANGUAGE
+fi
+unset DBUS_SESSION_BUS_ADDRESS
+unset XDG_RUNTIME_DIR
+
+( sleep 3 && \
+      setxkbmap -option ctrl:nocaps && \
+      xfconf-query -c xsettings -p /Gtk/FontName -s "Sans 14" || true && \
+      xfconf-query -c xsettings -p /Gtk/MonospaceFontName -s "Monospace 14" || true && \
+      xfconf-query -c xsettings -p /Net/ThemeName -n -t string -s "Adwaita" && \
+      xfconf-query -c xsettings -p /Net/IconThemeName -n -t string -s "Adwaita" && \
+) &
+( sleep 4 && xfconf-query -c xfce4-terminal -p /color-use-theme -n -t bool -s true ) &
+exec dbus-launch --exit-with-session startxfce4

@@ -48,7 +48,12 @@ RUN apt-get update && \
         systemd \
         systemd-sysv \
         tzdata \
-        wget && \
+        wget \
+	emacs \
+	adwaita-icon-theme \
+        gnome-themes-extra \
+        gtk2-engines-murrine \
+        gtk2-engines-pixbuf && \
     rm -rf /var/lib/apt/lists/* && \
     find /etc/systemd/system /lib/systemd/system \
         -path '*.wants/*' \
@@ -224,6 +229,11 @@ RUN chmod +x /usr/local/bin/container-setup /usr/local/bin/healthcheck \
     systemctl enable container-setup.service ssh.service xrdp.service && \
     systemctl set-default multi-user.target
 
+    
+# 3. Stop the image from creating passwordless sudo
+# Remove passwordless sudo after container-setup creates it
+RUN printf '\n# Remove passwordless sudo drop-in\nrm -f /etc/sudoers.d/90-*\n' \
+    >> /usr/local/bin/container-setup
 EXPOSE 22 3389 4000 5901
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
