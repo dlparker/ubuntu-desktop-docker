@@ -6,3 +6,6 @@
 .vscode/
 .claude/
 *.zip
+# emacs stuff
+*~
+#*#
