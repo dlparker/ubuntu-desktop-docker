@@ -41,6 +41,8 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+    security_opt:
+      - seccomp:./chromium.json
     healthcheck:
       test: ["CMD", "/usr/local/bin/healthcheck"]
       interval: 30s
