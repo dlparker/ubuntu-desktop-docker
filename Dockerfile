@@ -5,7 +5,7 @@ FROM ubuntu:${UBUNTU_VERSION}
 ARG VARIANT=full
 ARG INCLUDE_BROWSER=true
 ARG INCLUDE_MEDIA=true
-ARG INCLUDE_VSCODE=true
+ARG INCLUDE_VSCODE=false
 ARG INCLUDE_DEVTOOLS=true
 ARG INCLUDE_NOMACHINE=false
 ARG NOMACHINE_VERSION=9.5.7
@@ -49,7 +49,6 @@ RUN apt-get update && \
         systemd-sysv \
         tzdata \
         wget \
-	emacs \
 	adwaita-icon-theme \
         gnome-themes-extra \
         gtk2-engines-murrine \
@@ -78,6 +77,8 @@ RUN apt-get update && \
         git \
         htop \
         nano \
+	emacs \
+        tumbler-plugins-extra \
         openssh-server \
         tigervnc-standalone-server \
         tigervnc-tools \
@@ -98,8 +99,18 @@ RUN apt-get update && \
         pipewire-pulse \
         pipewire-module-xrdp \
         pavucontrol \
+        iputils-ping \
+        psmisc \
         xorgxrdp \
-        xrdp && \
+        xrdp \
+        nfs-common  \
+        smbclient  \
+        xfce4-clipman \
+        xsel \
+        xclip \
+        fuse3 \
+        libfuse2 \
+        cifs-utils && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p /var/run/sshd && \
@@ -112,7 +123,22 @@ RUN apt-get update && \
     # Disable NLA so Windows mstsc connects without TLS pre-auth negotiation
     # (xrdp's snakeoil cert isn't trusted, NLA handshake fails for most clients).
     sed -i 's/^security_layer=.*/security_layer=rdp/' /etc/xrdp/xrdp.ini
-
+# ---------------------------------------------------------------------------
+# VA-API / Vulkan drivers for AMD (and Intel) GPU acceleration.
+# Needed for vainfo, kdenlive, VLC hardware decode, etc. when /dev/dri is passed through.
+# ---------------------------------------------------------------------------
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        mesa-va-drivers \
+        mesa-vulkan-drivers \
+        vainfo \
+        libva2 \
+        libva-drm2 \
+        linux-firmware \
+        pulseaudio-utils && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+    
 # ---------------------------------------------------------------------------
 # Optional: developer toolchain (Python, build-essential).
 # ---------------------------------------------------------------------------
@@ -145,7 +171,7 @@ RUN if [ "${INCLUDE_DEVTOOLS}" = "true" ]; then \
     fi
 
 # ---------------------------------------------------------------------------
-# Optional: media tools (OBS Studio, VLC, ffmpeg).
+# Optional: media tools (OBS Studio, VLC, ffmpeg, kdenlive).
 # ---------------------------------------------------------------------------
 RUN if [ "${INCLUDE_MEDIA}" = "true" ]; then \
         apt-get update && \
@@ -154,6 +180,7 @@ RUN if [ "${INCLUDE_MEDIA}" = "true" ]; then \
             ffmpegthumbnailer \
             obs-studio \
             vlc && \
+        apt-get install -y --no-install-recommends kdenlive && \
         apt-get clean && \
         rm -rf /var/lib/apt/lists/*; \
     fi
@@ -175,10 +202,17 @@ RUN if [ "${INCLUDE_BROWSER}" = "true" ]; then \
             > /etc/apt/preferences.d/mozilla-firefox && \
         apt-get update && \
         apt-get install -y --no-install-recommends firefox && \
+        curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg \
+          https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg && \
+        curl -fsSLo /etc/apt/sources.list.d/brave-browser-release.sources \
+          https://brave-browser-apt-release.s3.brave.com/brave-browser.sources && \
+        apt-get update && \
+        apt-get install -y --no-install-recommends brave-browser && \
         apt-get clean && \
         rm -rf /var/lib/apt/lists/*; \
     fi
 
+    
 # ---------------------------------------------------------------------------
 # Optional: Visual Studio Code (Microsoft publishes amd64 + arm64).
 # ---------------------------------------------------------------------------
@@ -230,16 +264,13 @@ ENV USERNAME="" \
 # Image overlay: systemd units + helper scripts.
 COPY rootfs/ /
 
+
 RUN chmod +x /usr/local/bin/container-setup /usr/local/bin/healthcheck \
         /usr/local/sbin/container-init && \
     systemctl enable container-setup.service ssh.service xrdp.service && \
     systemctl set-default multi-user.target
 
-    
-# 3. Stop the image from creating passwordless sudo
-# Remove passwordless sudo after container-setup creates it
-RUN printf '\n# Remove passwordless sudo drop-in\nrm -f /etc/sudoers.d/90-*\n' \
-    >> /usr/local/bin/container-setup
+
 EXPOSE 22 3389 4000 5901
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
