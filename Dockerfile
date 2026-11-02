@@ -158,6 +158,20 @@ RUN if [ "${INCLUDE_DEVTOOLS}" = "true" ]; then \
     fi
 
 # ---------------------------------------------------------------------------
+# VA-API / Vulkan drivers for AMD (and Intel) GPU acceleration.
+# Needed for vainfo, kdenlive, VLC hardware decode, etc. when /dev/dri is passed through.
+# ---------------------------------------------------------------------------
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        mesa-va-drivers \
+        mesa-vulkan-drivers \
+        vainfo \
+        libva2 \
+        libva-drm2 \
+        linux-firmware &&\
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+# ---------------------------------------------------------------------------
 # Optional: media tools (OBS Studio, VLC, ffmpeg).
 # ---------------------------------------------------------------------------
 RUN if [ "${INCLUDE_MEDIA}" = "true" ]; then \
