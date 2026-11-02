@@ -5,7 +5,7 @@ FROM ubuntu:${UBUNTU_VERSION}
 ARG VARIANT=full
 ARG INCLUDE_BROWSER=true
 ARG INCLUDE_MEDIA=true
-ARG INCLUDE_VSCODE=true
+ARG INCLUDE_VSCODE=false
 ARG INCLUDE_DEVTOOLS=true
 ARG INCLUDE_NOMACHINE=false
 ARG NOMACHINE_VERSION=9.5.7
@@ -187,7 +187,7 @@ RUN if [ "${INCLUDE_MEDIA}" = "true" ]; then \
 
 # ---------------------------------------------------------------------------
 # Optional: web browser. Chrome on amd64, Chromium on arm64 (Google doesn't
-# publish Chrome for arm64).
+# publish Chrome for arm64). And Brave Browser
 # ---------------------------------------------------------------------------
 RUN if [ "${INCLUDE_BROWSER}" = "true" ]; then \
         install -d -m 0755 /etc/apt/keyrings && \
@@ -200,8 +200,14 @@ RUN if [ "${INCLUDE_BROWSER}" = "true" ]; then \
             > /etc/apt/sources.list.d/mozillateam.list && \
         printf 'Package: firefox*\nPin: release o=LP-PPA-mozillateam\nPin-Priority: 1001\n' \
             > /etc/apt/preferences.d/mozilla-firefox && \
+        # get brave repo
+        curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg \
+          https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg && \
+        curl -fsSLo /etc/apt/sources.list.d/brave-browser-release.sources \
+          https://brave-browser-apt-release.s3.brave.com/brave-browser.sources && \
         apt-get update && \
         apt-get install -y --no-install-recommends firefox && \
+        apt-get install -y --no-install-recommends brave-browser && \
         apt-get clean && \
         rm -rf /var/lib/apt/lists/*; \
     fi
@@ -263,10 +269,6 @@ RUN chmod +x /usr/local/bin/container-setup /usr/local/bin/healthcheck \
     systemctl set-default multi-user.target
 
     
-# 3. Stop the image from creating passwordless sudo
-# Remove passwordless sudo after container-setup creates it
-RUN printf '\n# Remove passwordless sudo drop-in\nrm -f /etc/sudoers.d/90-*\n' \
-    >> /usr/local/bin/container-setup
 EXPOSE 22 3389 4000 5901
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \

@@ -40,19 +40,51 @@ fi
 install -d -m 0755 "${STATE_DIR}"
 
 # --- User account -----------------------------------------------------------
+userdel -r ubuntu 2>/dev/null || true
+groupdel ubuntu 2>/dev/null || true
 if ! id -u "${USERNAME}" >/dev/null 2>&1; then
     log "Creating user ${USERNAME}"
-    useradd --create-home --shell /bin/bash --groups sudo,ssl-cert "${USERNAME}"
+    # Ensure GID/UID 1000 exist and are used
+    getent group 1000 >/dev/null || groupadd -g 1000 "${USERNAME}"
+    useradd --create-home --shell /bin/bash -u 1000 -g 1000 --groups sudo,ssl-cert "${USERNAME}"
+    # enable access to vulkan
+    groupadd -g 992 renderhost || true
+    usermod -aG video,992 "$USERNAME" || true
 fi
 
 log "Updating password for ${USERNAME}"
 echo "${USERNAME}:${PASSWORD}" | chpasswd
 
+
+# --- Remote mounts ----------------------------------------------------------
+if [[ -n "${USERNAME:-}" && -n "${PASSWORD:-}" ]]; then
+    log "Configuring NFS/CIFS mounts"
+    install -d -m 0755 -o "${USERNAME}" -g "${USERNAME}" \
+        /mnt/linux3090/xfer /mnt/linux3090/longterm /mnt/linux3090/working
+
+    printf 'username=%s\npassword=%s\ndomain=LLMNET\n' \
+        "${USERNAME}" "${PASSWORD}" > /etc/smbcreds
+    chmod 600 /etc/smbcreds
+
+    FSTAB_MARK="# container-setup mounts"
+    if ! grep -q "${FSTAB_MARK}" /etc/fstab; then
+        cat >> /etc/fstab << EOF
+${FSTAB_MARK}
+//linux3090/xfer /mnt/linux3090/xfer cifs user=${USERNAME},workgroup=DLPLLM,credentials=/etc/smbcreds,uid=1000,gid=1000,noperm,vers=3.0,iocharset=utf8 0 0
+linux3090:/mnt/data1/churn/longterm  /mnt/linux3090/longterm  nfs  defaults,timeo=100,noatime,_netdev  0  0
+linux3090:/mnt/data1/churn/working  /mnt/linux3090/working  nfs  defaults,timeo=100,noatime,_netdev  0  0
+EOF
+    fi
+
+    systemctl daemon-reload || true
+    mount -a || log "mount -a failed (network may not be ready)"
+fi
+
 # Passwordless sudo via drop-in (idempotent, unlike appending to /etc/sudoers).
 SUDOERS_FILE="/etc/sudoers.d/90-${USERNAME}"
-echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" > "${SUDOERS_FILE}"
-chmod 0440 "${SUDOERS_FILE}"
-visudo -cf "${SUDOERS_FILE}" >/dev/null
+#echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" > "${SUDOERS_FILE}"
+#chmod 0440 "${SUDOERS_FILE}"
+#visudo -cf "${SUDOERS_FILE}" >/dev/null
 
 USER_HOME="$(getent passwd "${USERNAME}" | cut -d: -f6)"
 
