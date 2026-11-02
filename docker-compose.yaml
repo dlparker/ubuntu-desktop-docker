@@ -25,8 +25,6 @@ services:
       DISABLE_VNC: ${DISABLE_VNC:-0}
       DISABLE_XRDP: ${DISABLE_XRDP:-0}
       DISABLE_SSH: ${DISABLE_SSH:-0}
-      NVIDIA_VISIBLE_DEVICES: all
-      NVIDIA_DRIVER_CAPABILITIES: all
     ports:
       - "${SSH_PORT:-2222}:22"
       - "${RDP_PORT:-13389}:3389"
@@ -34,13 +32,6 @@ services:
       # NoMachine NX (only useful if the image was built with
       # INCLUDE_NOMACHINE=true; otherwise this port has nothing listening).
       - "${NX_PORT:-4000}:4000"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
     security_opt:
       - seccomp:./chromium.json
     healthcheck:
@@ -49,3 +40,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 45s
+      
+include:
+  - path: ./gpu/${GPU_BACKEND:-none}.yaml
+    required: false   # don't fail if the file doesn't exist

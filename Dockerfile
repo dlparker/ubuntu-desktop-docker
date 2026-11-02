@@ -50,6 +50,8 @@ RUN apt-get update && \
         tzdata \
         wget \
 	emacs \
+        psmisc \
+        iputils-ping \
 	adwaita-icon-theme \
         gnome-themes-extra \
         gtk2-engines-murrine \
@@ -92,14 +94,25 @@ RUN apt-get update && \
         xfce4-goodies \
         xfce4-terminal \
         xorg \
+        xfce4-clipman \
+        xsel \
+        xclip \
+        xfce4-clipman \
+        tumbler-plugins-extra \
 	pipewire \
         pipewire-bin \
         wireplumber \
         pipewire-pulse \
         pipewire-module-xrdp \
         pavucontrol \
+        pulseaudio-utils \
         xorgxrdp \
-        xrdp && \
+        xrdp \
+        nfs-common  \
+        smbclient  \
+        fuse3 \
+        libfuse2 \
+        cifs-utils && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p /var/run/sshd && \
