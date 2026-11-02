@@ -56,29 +56,6 @@ log "Updating password for ${USERNAME}"
 echo "${USERNAME}:${PASSWORD}" | chpasswd
 
 
-# --- Remote mounts ----------------------------------------------------------
-if [[ -n "${USERNAME:-}" && -n "${PASSWORD:-}" ]]; then
-    log "Configuring NFS/CIFS mounts"
-    install -d -m 0755 -o "${USERNAME}" -g "${USERNAME}" \
-        /mnt/linux3090/xfer /mnt/linux3090/longterm /mnt/linux3090/working
-
-    printf 'username=%s\npassword=%s\ndomain=LLMNET\n' \
-        "${USERNAME}" "${PASSWORD}" > /etc/smbcreds
-    chmod 600 /etc/smbcreds
-
-    FSTAB_MARK="# container-setup mounts"
-    if ! grep -q "${FSTAB_MARK}" /etc/fstab; then
-        cat >> /etc/fstab << EOF
-${FSTAB_MARK}
-//linux3090/xfer /mnt/linux3090/xfer cifs user=${USERNAME},workgroup=DLPLLM,credentials=/etc/smbcreds,uid=1000,gid=1000,noperm,vers=3.0,iocharset=utf8 0 0
-linux3090:/mnt/data1/churn/longterm  /mnt/linux3090/longterm  nfs  defaults,timeo=100,noatime,_netdev  0  0
-linux3090:/mnt/data1/churn/working  /mnt/linux3090/working  nfs  defaults,timeo=100,noatime,_netdev  0  0
-EOF
-    fi
-
-    systemctl daemon-reload || true
-    mount -a || log "mount -a failed (network may not be ready)"
-fi
 
 # Passwordless sudo via drop-in (idempotent, unlike appending to /etc/sudoers).
 SUDOERS_FILE="/etc/sudoers.d/90-${USERNAME}"

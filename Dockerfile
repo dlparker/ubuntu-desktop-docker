@@ -172,15 +172,15 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 # ---------------------------------------------------------------------------
-# Optional: media tools (OBS Studio, VLC, ffmpeg).
+# Optional: media tools (KDEnlive, VLC, ffmpeg).
 # ---------------------------------------------------------------------------
 RUN if [ "${INCLUDE_MEDIA}" = "true" ]; then \
         apt-get update && \
         apt-get install -y --no-install-recommends \
             ffmpeg \
             ffmpegthumbnailer \
-            obs-studio \
-            vlc && \
+            vlc \
+            kdenlive && \
         apt-get clean && \
         rm -rf /var/lib/apt/lists/*; \
     fi

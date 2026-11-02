@@ -6,6 +6,17 @@ and **SSH**. Runs `systemd` as PID 1 so services start, stop, and restart
 cleanly. Headless by default; opt in to NVIDIA GPU passthrough when you need
 it.
 
+Changes:
+
+| | |
+| Built in support for sound for xrdp | |
+| Enabled the selection of GPU backend at startup| GPU_BACKEND=[none or nvidia or vulkan ] |
+| Added Brave browser | | 
+| Removed OBS and added KDEnlive | |
+| Made VS Code optional in full build | |
+| Added nfs and cifs mounting support | | 
+
+
 [![build](https://github.com/mscrnt/ubuntu-desktop-docker/actions/workflows/build.yml/badge.svg)](https://github.com/mscrnt/ubuntu-desktop-docker/actions/workflows/build.yml)
 [![release](https://github.com/mscrnt/ubuntu-desktop-docker/actions/workflows/release.yml/badge.svg)](https://github.com/mscrnt/ubuntu-desktop-docker/actions/workflows/release.yml)
 
