@@ -6,15 +6,16 @@ and **SSH**. Runs `systemd` as PID 1 so services start, stop, and restart
 cleanly. Headless by default; opt in to NVIDIA GPU passthrough when you need
 it.
 
-Changes:
+# Changes:
 
-| | |
-| Built in support for sound for xrdp | |
+| Change | Details |
+|---|---|
+| Built in support for sound for xrdp |  needs setup in client, remmina needs sys:alsa or similar |
 | Enabled the selection of GPU backend at startup| GPU_BACKEND=[none or nvidia or vulkan ] |
-| Added Brave browser | | 
-| Removed OBS and added KDEnlive | |
-| Made VS Code optional in full build | |
-| Added nfs and cifs mounting support | | 
+| Added Brave browser | kept firefox | 
+| Removed OBS and added KDEnlive | just cause |
+| Made VS Code optional in full build | don't use it |
+| Added nfs and cifs mounting support | do use it | 
 
 
 [![build](https://github.com/mscrnt/ubuntu-desktop-docker/actions/workflows/build.yml/badge.svg)](https://github.com/mscrnt/ubuntu-desktop-docker/actions/workflows/build.yml)
