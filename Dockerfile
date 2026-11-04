@@ -125,7 +125,8 @@ RUN apt-get update && \
     # Disable NLA so Windows mstsc connects without TLS pre-auth negotiation
     # (xrdp's snakeoil cert isn't trusted, NLA handshake fails for most clients).
     sed -i 's/^security_layer=.*/security_layer=rdp/' /etc/xrdp/xrdp.ini
-
+    # Slow down touchpad scrolling in xrdp sessions
+    sed -i '/^\[SessionVariables\]/a XRDP_XORG_TOUCHPAD_SCROLL_HACK=yes' /etc/xrdp/sesman.ini
 # ---------------------------------------------------------------------------
 # Optional: developer toolchain (Python, build-essential).
 # ---------------------------------------------------------------------------
