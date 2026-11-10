@@ -54,6 +54,19 @@ chmod 700 "$XDG_RUNTIME_DIR"
   # load the xrdp sink/source the way the package expects
   /usr/libexec/pipewire-module-xrdp/load_pw_modules.sh > /tmp/xrdp-module.log 2>&1
 ) &
+
+cat > "$HOME/.local/bin/brave-browser" << 'EOF'
+#!/bin/sh
+exec /usr/bin/brave-browser-stable --force-device-scale-factor=1.25 "$@"
+EOF
+chmod +x "$HOME/.local/bin/brave-browser"
+
+cp /usr/share/applications/brave-browser.desktop "$HOME/.local/share/applications/"
+sed -i "s|Exec=[^[:space:]]*|Exec=$HOME/.local/bin/brave-browser|" \
+    "$HOME/.local/share/applications/brave-browser.desktop"
+
+update-desktop-database "$HOME/.local/share/applications/" 2>/dev/null || true
+
 exec dbus-launch --exit-with-session startxfce4
 
 

@@ -107,7 +107,11 @@ RUN apt-get update && \
         pavucontrol \
         pulseaudio-utils \
         xorgxrdp \
-        xrdp \
+        xrdp \ 
+        fonts-noto-mono \
+        fonts-noto-color-emoji \
+        fonts-unifont \
+        fonts-symbola \
         nfs-common  \
         smbclient  \
         fuse3 \
@@ -124,7 +128,7 @@ RUN apt-get update && \
     sed -i 's/^Storage=auto/Storage=persistent/' /etc/systemd/journald.conf && \
     # Disable NLA so Windows mstsc connects without TLS pre-auth negotiation
     # (xrdp's snakeoil cert isn't trusted, NLA handshake fails for most clients).
-    sed -i 's/^security_layer=.*/security_layer=rdp/' /etc/xrdp/xrdp.ini
+    sed -i 's/^security_layer=.*/security_layer=rdp/' /etc/xrdp/xrdp.ini && \
     # Slow down touchpad scrolling in xrdp sessions
     sed -i '/^\[SessionVariables\]/a XRDP_XORG_TOUCHPAD_SCROLL_HACK=yes' /etc/xrdp/sesman.ini
 # ---------------------------------------------------------------------------

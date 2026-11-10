@@ -13,6 +13,8 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
       - ./mounts/setup:/opt/setup:ro      
       - ./mounts/host_xfer:/opt/host_xfer:rw
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     tmpfs:
       - /run
       - /run/lock
