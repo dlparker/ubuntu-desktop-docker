@@ -131,6 +131,22 @@ for app in firefox code obs vlc; do
         chown "${USERNAME}:${USERNAME}" "${dst}"
     fi
 done
+# Clone or update Fizgig on first login / container start
+FIZGIG_DIR="/opt/fizgig"
+if [ ! -d "$FIZGIG_DIR/.git" ]; then
+    git clone --depth 1 https://github.com/shootthesound/Fizgig.git "$FIZGIG_DIR"
+else
+    git -C "$FIZGIG_DIR" pull --ff-only || true
+fi
+chown -R "$USERNAME:$USERNAME" "$FIZGIG_DIR"
+
+# Simple desktop launcher (place in /usr/local/bin or ~/.local/bin)
+cat > /usr/local/bin/launch-fizgig << 'EOF'
+#!/bin/sh
+cd /opt/fizgig
+exec /opt/fizgig-venv/bin/python fizgig.py
+EOF
+chmod +x /usr/local/bin/launch-fizgig
 
 touch "${STAMP}"
 log "Setup complete"

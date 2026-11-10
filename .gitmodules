@@ -1,0 +1,3 @@
+[submodule "fizgig"]
+	path = fizgig
+	url = https://github.com/shootthesound/Fizgig.git

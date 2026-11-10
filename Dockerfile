@@ -1,4 +1,32 @@
 # syntax=docker/dockerfile:1.7
+
+# ---------------------------------------------------------------------------
+# Fizgig builder: create a self-contained venv with PyTorch + training deps.
+# Source and models are NOT baked in; they are cloned/downloaded at runtime.
+# ---------------------------------------------------------------------------
+FROM ubuntu:24.04 AS fizgig-builder
+
+ENV DEBIAN_FRONTEND=noninteractive PIP_NO_CACHE_DIR=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3.12 python3.12-venv python3.12-dev \
+        build-essential ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV VIRTUAL_ENV=/opt/fizgig-venv
+RUN python3.12 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# You will need to COPY the current Fizgig requirements.txt and uv_install_deps.py
+# into the build context (or wget them). Adjust the paths as needed.
+COPY fizgig/requirements.txt /tmp/requirements.txt
+COPY fizgig/uv_install_deps.py /tmp/uv_install_deps.py
+
+RUN pip install --upgrade pip uv \
+    && python3 /tmp/uv_install_deps.py /tmp/requirements.txt "$VIRTUAL_ENV" \
+    && rm -rf /root/.cache /tmp/requirements.txt /tmp/uv_install_deps.py
+    
+
 ARG UBUNTU_VERSION=24.04
 FROM ubuntu:${UBUNTU_VERSION}
 
@@ -190,6 +218,33 @@ RUN if [ "${INCLUDE_MEDIA}" = "true" ]; then \
         rm -rf /var/lib/apt/lists/*; \
     fi
 
+
+# ---------------------------------------------------------------------------
+# Fizgig runtime dependencies (OpenCV, fonts, git for clone-at-start)
+# ---------------------------------------------------------------------------
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git \
+        libgl1 \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        libxrender1 \
+        fonts-dejavu-core \
+        fonts-liberation \
+        fontconfig \
+        gcc \
+        libc6-dev \
+        python3.12-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Copy the pre-built venv from the builder stage
+COPY --from=fizgig-builder /opt/fizgig-venv /opt/fizgig-venv
+ENV PATH="/opt/fizgig-venv/bin:$PATH" \
+    VIRTUAL_ENV=/opt/fizgig-venv \
+    FIZGIG_HOME=/home/${USERNAME}/fizgig \
+    HF_HOME=/home/${USERNAME}/.cache/huggingface \
+    XDG_CACHE_HOME=/home/${USERNAME}/.cache
+    
 # ---------------------------------------------------------------------------
 # Optional: web browser. Chrome on amd64, Chromium on arm64 (Google doesn't
 # publish Chrome for arm64). And Brave Browser
